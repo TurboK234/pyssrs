@@ -1,0 +1,53 @@
+[GENERAL]
+
+# GENERAL CONVERSION PREFERENCES (USER CONFIRMATION REQUIRED).
+# DO NOT USE LITERAL (SINGLE) BACKSLASHES AS THE LAST CHARACTER.
+# THEY ARE NOT REQUIRED FOR PATHS AND USING THEM WILL LEAD TO AN ERROR.
+
+# The complete path (without the last slash or backslash) of the files
+# to be renamed or edited.
+DIR_ROOT_FILES = 
+
+# The complete path (without the last slash or backslash) of the rules.txt file.
+# Use empty to use the same folder as settings.txt.
+DIR_RULES = 
+
+# The complete path (without the last slash or backslash) of the log file.
+# Use empty to use DIR_FILES as the log folder.
+DIR_LOG = 
+
+# The extension of the original files to be renamed or edited,
+# without the period. Wildcards are not acceptable.                                                
+EXTENSION_FILES = 
+
+# Search also subdirectories of DIR_ROOT_FILES if set to yes.
+# Only the root folder is scanned otherwise.
+RECURSIVE_PYSSRS = no
+
+# Use the script for renaming files (the main purpose the script
+# was written for) if set to yes .
+RENAME_FILES = yes
+
+# Search and replace text inside text files. BE SURE that the extension is set
+# to text files if this is yes .
+SEARCH_INSIDE_TEXT_FILES = no
+
+# If using SEARCH_INSIDE_TEXT_FILES, make sure that this encoding setting matches
+# the encoding of the files. The default is UTF-8 (other options being for example ANSI).
+TEXTFILE_ENCODING = UTF-8
+
+# Number of days before the file is processed. This option looks at the source file's
+# modification time, and considers only dates and rounds up (i.e. file modified yesterday -> value = 1).
+# Use 0 to edit/rename files regardless of their age. This is a safety measure for automated setups,
+# not to edit files that are currently being written / recorded. As such, 1 is usually a good value.
+DAYS_BEFORE_SEARCH = 0
+
+# Show OK/Cancel dialogue (for 10 sec) before starting the execution.
+SHOW_LAUNCH_CONFIRMATION = yes
+
+# Select the verbosity of the log. Choose 0, 1, 2 or 3).
+# 0 for no logging at all,
+# 1 for minimal logging (e.g. script start and edited files),
+# 2 for sensible non repetitive logging and
+# 3 for full log (for debugging).
+LOGLEVEL = 3
