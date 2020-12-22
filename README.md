@@ -1,7 +1,7 @@
 # pyssrs
 Python String Search and Replace Script
 
-This script was created to clean up the names of the TV recordings created by the DVB software. The backend I'm usint (TVHeadend) has very good options to customize the name, but the actual OTA EPG data can not be edited on the fly. While the shows are most of the time named reasonably, there are some frequently occurring conventions. One, for example, is the "Movie:" tag in front of a movie. This ends up in files named as Movie_ Deadpool-TVChannel-YYYY-MM-DD-HH-MM.mkv .
+This script was created to clean up the names of the TV recordings created by the DVB software. The backend I'm using (TVHeadend) has very good options to customize the name, but the actual OTA EPG data can not be edited on the fly. While the shows are most of the time named reasonably, there are some frequently occurring conventions. One, for example, is the "Movie:" tag in front of a movie. This ends up in files named as Movie_ Deadpool-TVChannel-YYYY-MM-DD-HH-MM.mkv .
 
 While this is not particularly annoying, it causes the files to get sorted randomly and the ever-growing movie collection ends up a mess.
 
