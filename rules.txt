@@ -1,0 +1,53 @@
+### Pyssrs rules file.
+
+### This file holds the rules for analyzing the source file.
+### The rules are necessary for the script to be functional
+### I.e. there will be no renaming or editing if there are no
+### rules how this should be done.
+
+### Each rule starts with a line that (only) has a [RULE] tag and
+### ends with a line that (only) has a [/RULE] tag.
+
+### Please note that the order of the rules is important. The rules
+### listed first are considered first.
+
+### For simple strings no single quotes are needed.
+### If the string has spaces either in the beginning or in the end,
+### USE SINGLE QUOTES TO INCLUDE THE PRECEDING OF TRAILING SPACES.
+### As such, SINGLE QUOTES ARE NOT USABLE CHARACTERS to search and replace.
+
+### Also, three hashes (###) is used to denote a comment line in this file.
+### So you should not try to search for ### in the files.
+
+
+### Below are the rule fields explained followed by an example.
+### -----------------------------------------------------------
+
+### RULE_DESCRIPTION =
+### Non-formal title for user reminder and to enhance readability of
+### the rule list and the log.
+
+### STRING_SEARCH =
+### The string to be searched for in file's name or on the line inside the file.
+
+### STRING_REPLACE =
+### The string that replaces the original string in the file's name / line inside the file.
+### If empty the string will be removed from the filename / line in the file.
+
+### STRING_EXCLUSION_RULE =
+### Optional: User can fill here one string that causes the file / line inside the file to be skipped
+### if found in the file name or on the same line inside the text file as the STRING_SEARCH .
+
+
+### --------------------------------------------------------
+### Example rule below (not active because of the hashtags):
+
+### [RULE]
+### RULE_DESCRIPTION = Remove _OLD -tags from filenames and replace with _ARCHIVED
+### STRING_SEARCH = _OLD
+### STRING_REPLACE = _ARCHIVED
+### STRING_EXCLUSION_RULE = _NEW
+### [/RULE]
+
+### This ends the information section, below are user defined rules.
+### ****************************************************************
