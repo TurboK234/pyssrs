@@ -128,6 +128,7 @@ def end1():
 
 # The first log entry.
 log('Script initializing.', 1)
+log('Settings file is ' + os.path.join(settings_dir, settings_file) ' .', 2)
 
 # Function to check if rule keys exist.
 def dict_key_check(dict, key):
