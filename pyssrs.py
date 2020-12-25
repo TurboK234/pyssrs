@@ -352,7 +352,7 @@ for filefullname in filelist_filtered:
                     log('Exclusion string (>' + rule['STRING_EXCLUSION_RULE'] + '<, in rule "' + rule['RULE_DESCRIPTION'] + '") found on line >' + line_final.strip() + '<, skipping the rule.', 3)
                     continue
             if line_final.find(rule['STRING_SEARCH']) >= 0:
-                log('Hit on line >' + line_final.strip() + '< (rule "' + rule['RULE_DESCRIPTION'] + '", searched for >' + rule['STRING_SEARCH'] + '<, replacing with >' + rule['STRING_REPLACE'] + '<).', 3)
+                log('Hit on line >' + line_final.strip() + '< (rule "' + rule['RULE_DESCRIPTION'] + '", searched for >' + rule['STRING_SEARCH'] + '<, replacing with >' + rule['STRING_REPLACE'] + '<).', 2)
                 line_final = line_final.replace(rule['STRING_SEARCH'], rule['STRING_REPLACE'])
                 lines_edited += 1
 
@@ -429,6 +429,7 @@ for filefullname in filelist_filtered:
             
                 if os.path.exists(filefullname):
                     log('The new file succesfully replaced the original file, continuing to the next file after cleaning up.', 3)
+                    log(str(lines_edited) + ' line(s) were edited in the file ' + filefullname + ' succesfully.', 2)
                     files_edited += 1
                     if os.path.exists(oldfile):
                         os.remove(oldfile)
@@ -507,7 +508,7 @@ for filefullname in filelist_filtered:
         try:
             shutil.move(filefullname, filefullname_final)
             files_renamed += 1  
-            log('The file name was edited, renamed the file ' + filefullname + ' to ' + filefullname_final + '.', 3)
+            log('The file name was edited, renamed the file ' + filefullname + ' to ' + filefullname_final + '.', 2)
         except Exception as e:
             print('{}'.format(e))
             log('The source file + ' + filefullname + ' could not be renamed, cancelling the renaming for this file', 1)
