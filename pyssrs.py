@@ -304,7 +304,7 @@ for filefullname in filelist_filtered:
     log('Examining file ' + filefullname, 3)
     path_currentfile, filename_currentfile = os.path.split(filefullname)
 
-    # Check days before conversion
+    # Check the days (since modification) before considering the file for search.
     days_since_modification = (datetime.date.today() - datetime.date.fromtimestamp(os.path.getmtime(filefullname))).days
     if (days_since_modification < int(g_config['GENERAL']['DAYS_BEFORE_SEARCH'])):
         log('The file is newer (' + str(days_since_modification) + ' day(s) since modified) than DAYS_BEFORE_SEARCH defines, skipping the file.', 2)
@@ -464,7 +464,7 @@ for filefullname in filelist_filtered:
     log('Examining file ' + filefullname, 3)
     path_currentfile, filename_currentfile = os.path.split(filefullname)
 
-    # Check days before conversion
+    # Check the days (since modification) before considering the file for search.
     days_since_modification = (datetime.date.today() - datetime.date.fromtimestamp(os.path.getmtime(filefullname))).days
     if (days_since_modification < int(g_config['GENERAL']['DAYS_BEFORE_SEARCH'])):
         log('The file is newer (' + str(days_since_modification) + ' day(s) since modified) than DAYS_BEFORE_SEARCH defines, skipping the file.', 2)
@@ -495,7 +495,7 @@ for filefullname in filelist_filtered:
                 log('Exclusion string (>' + rule['STRING_EXCLUSION_RULE'] + '<, in rule "' + rule['RULE_DESCRIPTION'] + '") found in file name >' + filename_currentfile_final + '<, skipping the rule.', 3)
                 continue
         if filename_currentfile_final.find(rule['STRING_SEARCH']) >= 0:
-            log('Hit in file >' + filename_currentfile_final + '< (rule "' + rule['RULE_DESCRIPTION'] + '", searched for >' + rule['STRING_SEARCH'] + '<, replacing with >' + rule['STRING_REPLACE'] + '<).', 3)
+            log('Hit in file >' + filename_currentfile_final + '< (rule "' + rule['RULE_DESCRIPTION'] + '", searched for >' + rule['STRING_SEARCH'] + '<, replacing with >' + rule['STRING_REPLACE'] + '<).', 2)
             filename_currentfile_final = filename_currentfile_final.replace(rule['STRING_SEARCH'], rule['STRING_REPLACE'])    
     
     if filename_currentfile_final == filename_currentfile:
