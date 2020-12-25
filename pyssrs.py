@@ -495,7 +495,7 @@ for filefullname in filelist_filtered:
                 log('Exclusion string (>' + rule['STRING_EXCLUSION_RULE'] + '<, in rule "' + rule['RULE_DESCRIPTION'] + '") found in file name >' + filename_currentfile_final + '<, skipping the rule.', 3)
                 continue
         if filename_currentfile_final.find(rule['STRING_SEARCH']) >= 0:
-            log('Hit in file >' + filename_currentfile_final + '< (rule "' + rule['RULE_DESCRIPTION'] + '", searched for >' + rule['STRING_SEARCH'] + '<, replacing with >' + rule['STRING_REPLACE'] + '<).', 2)
+            log('Hit in file name >' + filename_currentfile_final + '< (rule "' + rule['RULE_DESCRIPTION'] + '", searched for >' + rule['STRING_SEARCH'] + '<, replacing with >' + rule['STRING_REPLACE'] + '<).', 2)
             filename_currentfile_final = filename_currentfile_final.replace(rule['STRING_SEARCH'], rule['STRING_REPLACE'])    
     
     if filename_currentfile_final == filename_currentfile:
