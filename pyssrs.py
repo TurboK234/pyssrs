@@ -70,7 +70,7 @@ g_config = configparser.ConfigParser()
 g_config.read(settings_file, encoding='utf-8')
 
 if (g_config['GENERAL']['DIR_ROOT_FILES']) == '':
-    print('Source directory is not set (DIR_REC), exiting. Check the settings.')
+    print('The directory for the files to be searched for (DIR_ROOT_FILES) is not set, exiting. Check the settings.')
     sys.exit()
 
 if g_config['GENERAL']['DIR_LOG'] == '':
