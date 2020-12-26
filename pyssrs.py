@@ -295,11 +295,12 @@ def is_readable(file, encoding):
 
 # The actual loop for searching and replacing text inside text files.
 
+files_edited = 0
+
 if g_config['GENERAL']['SEARCH_INSIDE_TEXT_FILES'] == 'yes':
     
     path_prevfile = ''
     dir_writeaccess = True
-    files_edited = 0
 
     log('Starting the loop to look for strings inside text files', 3)
     for filefullname in filelist_filtered:
@@ -459,11 +460,12 @@ else:
 
 # The actual loop for renaming files.
 
+files_renamed = 0
+
 if g_config['GENERAL']['RENAME_FILES'] == 'yes':
     
     path_prevfile = ''
     dir_writeaccess = True
-    files_renamed = 0
 
     log('Starting the loop to rename files.', 3)
     for filefullname in filelist_filtered:
