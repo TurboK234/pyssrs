@@ -295,225 +295,234 @@ def is_readable(file, encoding):
 
 # The actual loop for searching and replacing text inside text files.
 
-path_prevfile = ''
-dir_writeaccess = True
-files_edited = 0
-
-log('Starting the loop to look for strings inside text files', 3)
-for filefullname in filelist_filtered:
-
-    log('Examining file ' + filefullname, 3)
-    path_currentfile, filename_currentfile = os.path.split(filefullname)
-
-    # Check the days (since modification) before considering the file for search.
-    days_since_modification = (datetime.date.today() - datetime.date.fromtimestamp(os.path.getmtime(filefullname))).days
-    if (days_since_modification < int(g_config['GENERAL']['DAYS_BEFORE_SEARCH'])):
-        log('The file is newer (' + str(days_since_modification) + ' day(s) since modified) than DAYS_BEFORE_SEARCH defines, skipping the file.', 2)
-        continue
-    else:
-        log('The file is older or equal (' + str(days_since_modification) + ' day(s) since modified) to what DAYS_BEFORE_SEARCH defines, continuing.', 3) 
-
-    if not path_currentfile == path_prevfile:   
-        if is_writable(path_currentfile):
-            log('The directory ' + path_currentfile + ' is writable, continuing.', 3)
-            path_prevfile = path_currentfile
-            dir_writeaccess = True
-        else:
-            log('Unable to write to directory ' + path_currentfile + ' , check permissions. Skipping to the next folder.', 1)
-            path_prevfile = path_currentfile
-            dir_writeaccess = False
-            continue
-    else:
-        if dir_writeaccess == False:
-            continue
-
-    if g_config['GENERAL']['TEXTFILE_ENCODING'] == '':
-        text_encoding = 'utf-8'
-    else:
-        text_encoding = str(g_config['GENERAL']['TEXTFILE_ENCODING'])
-
-    if not is_readable(filefullname, text_encoding):
-        log('The file ' + filefullname + ' could not be read, maybe wrong encoding? Check the settings. Skipping the file.', 1)
-        continue
-        
-    currentfile = open(filefullname, 'r', encoding=text_encoding)
-    currentfile_list = currentfile.readlines()
-    currentfile.close()
-
-    currentfile_list_final = []
-
-    lines_edited = 0
-
-    for line in currentfile_list:
-
-        line_final = line
-        for rule in rules:
-            if 'STRING_EXCLUSION_RULE' in rule:
-                if line_final.find(rule['STRING_EXCLUSION_RULE']) >= 0:
-                    log('Exclusion string (>' + rule['STRING_EXCLUSION_RULE'] + '<, in rule "' + rule['RULE_DESCRIPTION'] + '") found on line >' + line_final.strip() + '<, skipping the rule.', 3)
-                    continue
-            if line_final.find(rule['STRING_SEARCH']) >= 0:
-                log('Hit on line >' + line_final.strip() + '< (rule "' + rule['RULE_DESCRIPTION'] + '", searched for >' + rule['STRING_SEARCH'] + '<, replacing with >' + rule['STRING_REPLACE'] + '<).', 2)
-                line_final = line_final.replace(rule['STRING_SEARCH'], rule['STRING_REPLACE'])
-                lines_edited += 1
-
-        currentfile_list_final.append(line_final)        
+if g_config['GENERAL']['SEARCH_INSIDE_TEXT_FILES'] == 'yes':
     
-    if currentfile_list_final == currentfile_list:
-        log('Nothing to edit in the file ' + filefullname + ', continuing', 3)
-        continue
-    else:
-        # If the file contents was edited the replacing is done step-by-step to allow proper debugging.
-        log('The file was edited, trying to replace the old file', 3)
+    path_prevfile = ''
+    dir_writeaccess = True
+    files_edited = 0
 
-        tempfilecount = 0
-        tempfile = '{}.{}-{}'.format(filefullname, 'TEMP', tempfilecount)
-        while (os.path.exists(tempfile)):
-            tempfile = '{}.{}-{}'.format(filefullname, 'TEMP', tempfilecount)
-            tempfilecount = tempfilecount + 1
+    log('Starting the loop to look for strings inside text files', 3)
+    for filefullname in filelist_filtered:
 
-        try:
-            tempf = open(filefullname, 'w', encoding=text_encoding)
-            tempf.close()
-        except Exception as e:
-            print('{}'.format(e))
-            log('The source file + ' + filefullname + ' could not be written (check rights), cancelling the overwriting', 1)
+        log('Examining file ' + filefullname, 3)
+        path_currentfile, filename_currentfile = os.path.split(filefullname)
+
+        # Check the days (since modification) before considering the file for search.
+        days_since_modification = (datetime.date.today() - datetime.date.fromtimestamp(os.path.getmtime(filefullname))).days
+        if (days_since_modification < int(g_config['GENERAL']['DAYS_BEFORE_SEARCH'])):
+            log('The file is newer (' + str(days_since_modification) + ' day(s) since modified) than DAYS_BEFORE_SEARCH defines, skipping the file.', 2)
             continue
-            
-        try:
-            # The temp file is copied from the original file to preserve all (easily) preservable properties.
-            shutil.copy(filefullname, tempfile)
-        except Exception as e:
-            print('{}'.format(e))
-            log('The source file + ' + filefullname + ' could not be copied to a temporary file (check rights), cancelling the overwriting.', 1)
-            if os.path.exists(tempfile):
-                os.remove(tempfile)
-            continue
+        else:
+            log('The file is older or equal (' + str(days_since_modification) + ' day(s) since modified) to what DAYS_BEFORE_SEARCH defines, continuing.', 3) 
 
-        tempf = open(tempfile, 'w', encoding=text_encoding)
-        tempf.writelines(currentfile_list_final)
-        tempf.close()
-
-        tempf_readtest = open(tempfile, 'r', encoding=text_encoding)
-        tempf_readtest_lines = tempf_readtest.readlines()
-        tempf_readtest.close()
-
-        if tempf_readtest_lines == currentfile_list_final:
-            log('The temporary file was successfully written, trying to replace the old file.', 3)
-            oldfile_movecount = 0
-            oldfile = '{}.{}-{}'.format(filefullname, 'OLD', oldfile_movecount)
-            while (os.path.exists(oldfile)):
-                oldfile = '{}.{}-{}'.format(filefullname, 'OLD', oldfile_movecount)
-                oldfile_movecount = oldfile_movecount + 1                
-            try:
-                shutil.move(filefullname, oldfile)
-            except Exception as e:
-                print('{}'.format(e))
-                log('The source file + ' + filefullname + ' could not be moved or renamed, cancelling the overwriting', 1)
-                if os.path.exists(oldfile):
-                    os.remove(oldfile)
-                if os.path.exists(tempfile):
-                    os.remove(tempfile)                    
+        if not path_currentfile == path_prevfile:   
+            if is_writable(path_currentfile):
+                log('The directory ' + path_currentfile + ' is writable, continuing.', 3)
+                path_prevfile = path_currentfile
+                dir_writeaccess = True
+            else:
+                log('Unable to write to directory ' + path_currentfile + ' , check permissions. Skipping to the next folder.', 1)
+                path_prevfile = path_currentfile
+                dir_writeaccess = False
+                continue
+        else:
+            if dir_writeaccess == False:
                 continue
 
-            if not os.path.exists(filefullname):
+        if g_config['GENERAL']['TEXTFILE_ENCODING'] == '':
+            text_encoding = 'utf-8'
+        else:
+            text_encoding = str(g_config['GENERAL']['TEXTFILE_ENCODING'])
+
+        if not is_readable(filefullname, text_encoding):
+            log('The file ' + filefullname + ' could not be read, maybe wrong encoding? Check the settings. Skipping the file.', 1)
+            continue
+
+        currentfile = open(filefullname, 'r', encoding=text_encoding)
+        currentfile_list = currentfile.readlines()
+        currentfile.close()
+
+        currentfile_list_final = []
+
+        lines_edited = 0
+
+        for line in currentfile_list:
+
+            line_final = line
+            for rule in rules:
+                if 'STRING_EXCLUSION_RULE' in rule:
+                    if line_final.find(rule['STRING_EXCLUSION_RULE']) >= 0:
+                        log('Exclusion string (>' + rule['STRING_EXCLUSION_RULE'] + '<, in rule "' + rule['RULE_DESCRIPTION'] + '") found on line >' + line_final.strip() + '<, skipping the rule.', 3)
+                        continue
+                if line_final.find(rule['STRING_SEARCH']) >= 0:
+                    log('Hit on line >' + line_final.strip() + '< (rule "' + rule['RULE_DESCRIPTION'] + '", searched for >' + rule['STRING_SEARCH'] + '<, replacing with >' + rule['STRING_REPLACE'] + '<).', 2)
+                    line_final = line_final.replace(rule['STRING_SEARCH'], rule['STRING_REPLACE'])
+                    lines_edited += 1
+
+            currentfile_list_final.append(line_final)        
+
+        if currentfile_list_final == currentfile_list:
+            log('Nothing to edit in the file ' + filefullname + ', continuing', 3)
+            continue
+        else:
+            # If the file contents was edited the replacing is done step-by-step to allow proper debugging.
+            log('The file was edited, trying to replace the old file', 3)
+
+            tempfilecount = 0
+            tempfile = '{}.{}-{}'.format(filefullname, 'TEMP', tempfilecount)
+            while (os.path.exists(tempfile)):
+                tempfile = '{}.{}-{}'.format(filefullname, 'TEMP', tempfilecount)
+                tempfilecount = tempfilecount + 1
+
+            try:
+                tempf = open(filefullname, 'w', encoding=text_encoding)
+                tempf.close()
+            except Exception as e:
+                print('{}'.format(e))
+                log('The source file + ' + filefullname + ' could not be written (check rights), cancelling the overwriting', 1)
+                continue
+
+            try:
+                # The temp file is copied from the original file to preserve all (easily) preservable properties.
+                shutil.copy(filefullname, tempfile)
+            except Exception as e:
+                print('{}'.format(e))
+                log('The source file + ' + filefullname + ' could not be copied to a temporary file (check rights), cancelling the overwriting.', 1)
+                if os.path.exists(tempfile):
+                    os.remove(tempfile)
+                continue
+
+            tempf = open(tempfile, 'w', encoding=text_encoding)
+            tempf.writelines(currentfile_list_final)
+            tempf.close()
+
+            tempf_readtest = open(tempfile, 'r', encoding=text_encoding)
+            tempf_readtest_lines = tempf_readtest.readlines()
+            tempf_readtest.close()
+
+            if tempf_readtest_lines == currentfile_list_final:
+                log('The temporary file was successfully written, trying to replace the old file.', 3)
+                oldfile_movecount = 0
+                oldfile = '{}.{}-{}'.format(filefullname, 'OLD', oldfile_movecount)
+                while (os.path.exists(oldfile)):
+                    oldfile = '{}.{}-{}'.format(filefullname, 'OLD', oldfile_movecount)
+                    oldfile_movecount = oldfile_movecount + 1                
                 try:
-                    shutil.copy(tempfile, filefullname)
+                    shutil.move(filefullname, oldfile)
                 except Exception as e:
                     print('{}'.format(e))
-                    log('The temp file + ' + tempfile + ' could not be copied to as the original file, cancelling the overwriting', 1)
+                    log('The source file + ' + filefullname + ' could not be moved or renamed, cancelling the overwriting', 1)
                     if os.path.exists(oldfile):
                         os.remove(oldfile)
                     if os.path.exists(tempfile):
                         os.remove(tempfile)                    
                     continue
-            
-                if os.path.exists(filefullname):
-                    log('The new file succesfully replaced the original file, continuing to the next file after cleaning up.', 3)
-                    log(str(lines_edited) + ' line(s) were edited in the file ' + filefullname + ' succesfully.', 2)
-                    files_edited += 1
-                    if os.path.exists(oldfile):
-                        os.remove(oldfile)
-                    if os.path.exists(tempfile):
-                        os.remove(tempfile)                        
+
+                if not os.path.exists(filefullname):
+                    try:
+                        shutil.copy(tempfile, filefullname)
+                    except Exception as e:
+                        print('{}'.format(e))
+                        log('The temp file + ' + tempfile + ' could not be copied to as the original file, cancelling the overwriting', 1)
+                        if os.path.exists(oldfile):
+                            os.remove(oldfile)
+                        if os.path.exists(tempfile):
+                            os.remove(tempfile)                    
+                        continue
+
+                    if os.path.exists(filefullname):
+                        log('The new file succesfully replaced the original file, continuing to the next file after cleaning up.', 3)
+                        log(str(lines_edited) + ' line(s) were edited in the file ' + filefullname + ' succesfully.', 2)
+                        files_edited += 1
+                        if os.path.exists(oldfile):
+                            os.remove(oldfile)
+                        if os.path.exists(tempfile):
+                            os.remove(tempfile)                        
+                    else:
+                        log('The new file could not be renamed as the original file, reverting to the old file.', 2)
+                        shutil.move(oldfile, filefullname)
+                        if os.path.exists(tempfile):
+                            os.remove(tempfile)
                 else:
-                    log('The new file could not be renamed as the original file, reverting to the old file.', 2)
-                    shutil.move(oldfile, filefullname)
+                    log('The old file was not properly moved, cancelling and skipping the file', 1)
                     if os.path.exists(tempfile):
                         os.remove(tempfile)
+                    if os.path.exists(oldfile):
+                        os.remove(oldfile)
             else:
-                log('The old file was not properly moved, cancelling and skipping the file', 1)
+                log('The temporary file did not mirror the edited contents, skipping the conversion and keeping the old file', 1)
                 if os.path.exists(tempfile):
                     os.remove(tempfile)
-                if os.path.exists(oldfile):
-                    os.remove(oldfile)
-        else:
-            log('The temporary file did not mirror the edited contents, skipping the conversion and keeping the old file', 1)
-            if os.path.exists(tempfile):
-                os.remove(tempfile)
-
+                    
+else:
+    log('Not searching inside files, SEARCH_INSIDE_TEXT_FILES was not set to yes in the settings.', 2)
 
 # The actual loop for renaming files.
 
-path_prevfile = ''
-dir_writeaccess = True
-files_renamed = 0
+if g_config['GENERAL']['RENAME_FILES'] == 'yes':
+    
+    path_prevfile = ''
+    dir_writeaccess = True
+    files_renamed = 0
 
-log('Starting the loop to rename files.', 3)
-for filefullname in filelist_filtered:
+    log('Starting the loop to rename files.', 3)
+    for filefullname in filelist_filtered:
 
-    log('Examining file ' + filefullname, 3)
-    path_currentfile, filename_currentfile = os.path.split(filefullname)
+        log('Examining file ' + filefullname, 3)
+        path_currentfile, filename_currentfile = os.path.split(filefullname)
 
-    # Check the days (since modification) before considering the file for search.
-    days_since_modification = (datetime.date.today() - datetime.date.fromtimestamp(os.path.getmtime(filefullname))).days
-    if (days_since_modification < int(g_config['GENERAL']['DAYS_BEFORE_SEARCH'])):
-        log('The file is newer (' + str(days_since_modification) + ' day(s) since modified) than DAYS_BEFORE_SEARCH defines, skipping the file.', 2)
-        continue
-    else:
-        log('The file is older or equal (' + str(days_since_modification) + ' day(s) since modified) to what DAYS_BEFORE_SEARCH defines, continuing.', 3) 
-
-    if not path_currentfile == path_prevfile:   
-        if is_writable(path_currentfile):
-            log('The directory ' + path_currentfile + ' is writable, continuing.', 3)
-            path_prevfile = path_currentfile
-            dir_writeaccess = True
+        # Check the days (since modification) before considering the file for search.
+        days_since_modification = (datetime.date.today() - datetime.date.fromtimestamp(os.path.getmtime(filefullname))).days
+        if (days_since_modification < int(g_config['GENERAL']['DAYS_BEFORE_SEARCH'])):
+            log('The file is newer (' + str(days_since_modification) + ' day(s) since modified) than DAYS_BEFORE_SEARCH defines, skipping the file.', 2)
+            continue
         else:
-            log('Unable to write to directory ' + path_currentfile + ' , check permissions. Skipping to the next folder.', 1)
-            path_prevfile = path_currentfile
-            dir_writeaccess = False
-            continue
-    else:
-        if dir_writeaccess == False:
-            continue
- 
+            log('The file is older or equal (' + str(days_since_modification) + ' day(s) since modified) to what DAYS_BEFORE_SEARCH defines, continuing.', 3) 
 
-    filename_currentfile_final = filename_currentfile
-    
-    for rule in rules:
-        if 'STRING_EXCLUSION_RULE' in rule:
-            if filename_currentfile_final.find(rule['STRING_EXCLUSION_RULE']) >= 0:
-                log('Exclusion string (>' + rule['STRING_EXCLUSION_RULE'] + '<, in rule "' + rule['RULE_DESCRIPTION'] + '") found in file name >' + filename_currentfile_final + '<, skipping the rule.', 3)
+        if not path_currentfile == path_prevfile:   
+            if is_writable(path_currentfile):
+                log('The directory ' + path_currentfile + ' is writable, continuing.', 3)
+                path_prevfile = path_currentfile
+                dir_writeaccess = True
+            else:
+                log('Unable to write to directory ' + path_currentfile + ' , check permissions. Skipping to the next folder.', 1)
+                path_prevfile = path_currentfile
+                dir_writeaccess = False
                 continue
-        if filename_currentfile_final.find(rule['STRING_SEARCH']) >= 0:
-            log('Hit in file name >' + filename_currentfile_final + '< (rule "' + rule['RULE_DESCRIPTION'] + '", searched for >' + rule['STRING_SEARCH'] + '<, replacing with >' + rule['STRING_REPLACE'] + '<).', 2)
-            filename_currentfile_final = filename_currentfile_final.replace(rule['STRING_SEARCH'], rule['STRING_REPLACE'])    
-    
-    if filename_currentfile_final == filename_currentfile:
-        log('Nothing to edit in the file name ' + filefullname + ', continuing', 3)
-        continue
-    else:
+        else:
+            if dir_writeaccess == False:
+                continue
 
-        filefullname_final = os.path.join(path_currentfile, filename_currentfile_final)
-        
-        try:
-            shutil.move(filefullname, filefullname_final)
-            files_renamed += 1  
-            log('The file name was edited, renamed the file ' + filefullname + ' to ' + filefullname_final + '.', 2)
-        except Exception as e:
-            print('{}'.format(e))
-            log('The source file + ' + filefullname + ' could not be renamed, cancelling the renaming for this file', 1)
+
+        filename_currentfile_final = filename_currentfile
+
+        for rule in rules:
+            if 'STRING_EXCLUSION_RULE' in rule:
+                if filename_currentfile_final.find(rule['STRING_EXCLUSION_RULE']) >= 0:
+                    log('Exclusion string (>' + rule['STRING_EXCLUSION_RULE'] + '<, in rule "' + rule['RULE_DESCRIPTION'] + '") found in file name >' + filename_currentfile_final + '<, skipping the rule.', 3)
+                    continue
+            if filename_currentfile_final.find(rule['STRING_SEARCH']) >= 0:
+                log('Hit in file name >' + filename_currentfile_final + '< (rule "' + rule['RULE_DESCRIPTION'] + '", searched for >' + rule['STRING_SEARCH'] + '<, replacing with >' + rule['STRING_REPLACE'] + '<).', 2)
+                filename_currentfile_final = filename_currentfile_final.replace(rule['STRING_SEARCH'], rule['STRING_REPLACE'])    
+
+        if filename_currentfile_final == filename_currentfile:
+            log('Nothing to edit in the file name ' + filefullname + ', continuing', 3)
             continue
+        else:
 
+            filefullname_final = os.path.join(path_currentfile, filename_currentfile_final)
+
+            try:
+                shutil.move(filefullname, filefullname_final)
+                files_renamed += 1  
+                log('The file name was edited, renamed the file ' + filefullname + ' to ' + filefullname_final + '.', 2)
+            except Exception as e:
+                print('{}'.format(e))
+                log('The source file + ' + filefullname + ' could not be renamed, cancelling the renaming for this file', 1)
+                continue
+
+else:
+    log('Not renaming files, RENAME_FILES was not set to yes in the settings.', 2)
+                
 log('Done, ' + str(files_edited) + ' files edited, ' + str(files_renamed) + ' files renamed.', 1)
 end1()
